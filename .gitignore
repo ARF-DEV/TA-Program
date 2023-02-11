@@ -130,5 +130,5 @@ dmypy.json
 
 
 # User Added
-/images
 /weights
+/inference

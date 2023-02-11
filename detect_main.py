@@ -36,9 +36,7 @@ def detect_image_no_cmd(source, weights, save_txt, image_size, output_dir, devic
 
     set_logging()
     select_device(device.type)
-    half = device.type != 'cpu'  # half precision only supported on CUDA
-
-    
+    half = device.type != 'cpu'  # half precision only supported on CUDA    
 
     model = attempt_load(weights, map_location=device)  # load FP32 model
     stride = int(model.stride.max())  # model stride
