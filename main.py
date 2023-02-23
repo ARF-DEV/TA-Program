@@ -8,5 +8,5 @@ if torch.cuda.is_available():
     print('Using GPU')
 else:
     print('Using CPU')
-detect_image_no_cmd('images/horses.jpg', 'weights/yolov7.pt', True, 640, 'output', torch.device('cuda'))
+detect_image_no_cmd('videos/Stealing/Stealing002_x264.mp4', 'weights/yolov7.pt', True, 640, 'output', torch.device('cuda'))
 print('Done.')

@@ -132,3 +132,5 @@ dmypy.json
 # User Added
 /weights
 /inference
+/videos
+/data

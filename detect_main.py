@@ -29,6 +29,7 @@ def detect_image_no_cmd(source, weights, save_txt, image_size, output_dir, devic
     }
     augment = False
     save_img = not source.endswith('.txt')  # save inference images
+    vid_path, vid_writer = None, None
 
     save_dir = Path(increment_path(Path(dict['save_dir']) / dict['name'], exist_ok=dict['exist_ok']))  # increment run
     (save_dir / 'labels' if save_txt else save_dir).mkdir(parents=True, exist_ok=True)  # make dir
