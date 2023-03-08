@@ -3,6 +3,7 @@ import time
 from pathlib import Path
 
 import cv2
+from cv2 import VideoWriter, VideoWriter_fourcc
 import torch
 import torch.backends.cudnn as cudnn
 from numpy import random
@@ -14,12 +15,11 @@ from utils.general import check_img_size, check_requirements, check_imshow, non_
 from utils.plots import plot_one_box
 from utils.torch_utils import select_device, load_classifier, time_synchronized, TracedModel
 
-def detect_image_no_cmd(source, weights, save_txt, image_size, output_dir, device):
+def detect_image_no_cmd(source, weights, save_txt, image_size, device):
     dict = {
         'conf_thres': 0.25,
         'iou_thres': 0.45,
         'image_size': 640,
-        'device': 'cpu',
         'classes': None,
         'agnostic_nms': False,
         'save_dir': 'inference',
@@ -112,7 +112,7 @@ def detect_image_no_cmd(source, weights, save_txt, image_size, output_dir, devic
                     else:  # 'video' or 'stream'
                         if vid_path != save_path:  # new video
                             vid_path = save_path
-                            if isinstance(vid_writer, cv2.VideoWriter):
+                            if isinstance(vid_writer, VideoWriter):
                                 vid_writer.release()  # release previous video writer
                             if vid_cap:  # video
                                 fps = vid_cap.get(cv2.CAP_PROP_FPS)
@@ -122,8 +122,7 @@ def detect_image_no_cmd(source, weights, save_txt, image_size, output_dir, devic
                                 fps, w, h = 30, im0.shape[1], im0.shape[0]
                                 save_path += '.mp4'
                             vid_writer = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
-                        vid_writer.write(im0)
-                    
+                        vid_writer.write(im0) 
 
         print(f'{s}Done. ({(1E3 * (t2 - t1)):.1f}ms) Inference, ({(1E3 * (t3 - t2)):.1f}ms) NMS')
         

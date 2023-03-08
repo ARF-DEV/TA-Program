@@ -122,14 +122,14 @@ class FastFlowNet(nn.Module):
         vgrid[:, 0, :, :] = 2.0 * vgrid[:, 0, :, :] / max(W-1, 1) - 1.0
         vgrid[:, 1, :, :] = 2.0 * vgrid[:, 1, :, :] / max(H-1, 1) - 1.0
         vgrid = vgrid.permute(0, 2, 3, 1)        
-        output = F.grid_sample(x, vgrid, mode='bilinear')
+        output = F.grid_sample(x, vgrid, mode='bilinear', align_corners=True)
         return output
 
 
     def forward(self, x):
         img1 = x[:, :3, :, :]
         img2 = x[:, 3:6, :, :]
-        f11 = self.pconv1_2(self.pconv1_1(img1))
+        f11 = self.pconv1_2(self.pconv1_1(img1)) 
         f21 = self.pconv1_2(self.pconv1_1(img2))
         f12 = self.pconv2_3(self.pconv2_2(self.pconv2_1(f11)))
         f22 = self.pconv2_3(self.pconv2_2(self.pconv2_1(f21)))
