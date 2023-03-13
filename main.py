@@ -9,6 +9,6 @@ if torch.cuda.is_available():
     print('Using GPU')
 else:
     print('Using CPU')
-optical_flow_estimation('videos/Stealing002_x264.mp4', 'weights/fastflownet_ft_mix.pth', False, False, True)
+optical_flow_estimation('videos/Stealing108_x264.mp4', 'weights/fastflownet_gtav.pth', testing=False, save_in_rgb=False, save_img=True)
 # detect_image_no_cmd('videos/Burglary001_x264.mp4', 'weights/yolov7.pt', True, 640, torch.device('cuda'))
 print('Done.')

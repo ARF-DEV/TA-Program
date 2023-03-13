@@ -89,6 +89,7 @@ def optical_flow_estimation(source, weights, testing=False,save_in_rgb=True, sav
         save_path = str(save_dir / p.name)
         t1 = time_synchronized()
         flow_color = get_optical_flow_estimation(model, p_im0, c_im0)
+        # flow_color[:, :, 0] = flow_color[:, :, 0] * 0.5 + 0.5 * p_im0[:, :, 0]
         t2 = time_synchronized()
         print(f'Done. ({(1E3 * (t2 - t1)):.1f}ms) Inference')
         
@@ -109,15 +110,17 @@ def optical_flow_estimation(source, weights, testing=False,save_in_rgb=True, sav
                         fps, w, h = 30, c_im0.shape[1], c_im0.shape[0]
                         save_path += '.mp4'
                     
-                if save_in_rgb:
-                    vid_writer = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
-                    vid_writer.write(flow_color)
+                    if save_in_rgb:
+                        vid_writer = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
+                    else:
+                        vid_writer = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h), 0)
                 else:
-                    flow_gray = cv2.cvtColor(flow_color, cv2.COLOR_BGR2GRAY)
-                    vid_writer = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h), 0)
-                    vid_writer.write(flow_gray)
-        
-        
+                    if save_in_rgb:
+                        vid_writer.write(flow_color)
+                    else:
+                        flow_gray = cv2.cvtColor(flow_color, cv2.COLOR_BGR2GRAY)
+                        im_bw = cv2.threshold(flow_gray, 200, 255, cv2.THRESH_BINARY)[1]
+                        vid_writer.write(im_bw)
         p_path, p_img, p_im0, p_vid_cap = c_path, c_img, c_im0, c_vid_cap
     tend = time_synchronized()
-    print(f'Done. ({(1E3 * (t2 - t1)):.1f}ms) Inference')
+    print(f'Done. ({(1E3 * (tend - tstart)):.1f}ms) Inference')
