@@ -156,7 +156,7 @@ class LoadImages:  # for inference
                             f'Supported formats are:\nimages: {img_formats}\nvideos: {vid_formats}'
 
     def __iter__(self):
-        # self.count = 0
+        self.count = 0
         return self
 
     def __next__(self):
@@ -179,7 +179,7 @@ class LoadImages:  # for inference
                     ret_val, img0 = self.cap.read()
 
             self.frame += 1
-            print(f'video {self.count + 1}/{self.nf} ({self.frame}/{self.nframes}) {path}: ', end='')
+            print(f'video {self.count + 1}/{self.nf} ({self.frame}/{self.nframes}) {path} ')
 
         else:
             # Read image
@@ -205,6 +205,8 @@ class LoadImages:  # for inference
 
     def __len__(self):
         return self.nf  # number of files
+    def get_file_name(self):
+        return self.files[self.count]
 
 
 class LoadWebcam:  # for inference
