@@ -113,7 +113,6 @@ class FastFlowYOLOPipeline:
 
     def detect_and_optical_flow(self, source, mode='normal'):
         set_logging()
-
         image_size = check_img_size(
             self.image_size, s=self.stride)  # check img_size
         dataset = LoadImages(source, img_size=image_size, stride=self.stride)
@@ -121,7 +120,7 @@ class FastFlowYOLOPipeline:
                         Path(dataset.get_file_name()).name, exist_ok=self.path_exist_ok))  # increment run
         save_dir.mkdir(parents=True, exist_ok=True)
         t1 = time_synchronized()
-        frame = 2
+        frame = 1
         p_path, p_img, p_im0, p_vid_cap = next(dataset)
         frame_flow_sum_data = pd.DataFrame(columns=['frame', 'flow_sum'])
         frame_flow_movement = pd.DataFrame(
@@ -155,6 +154,8 @@ class FastFlowYOLOPipeline:
         vid_writer_final = cv2.VideoWriter(
             str(save_path_final), cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
         for c_path, c_img, c_im0, c_vid_cap in dataset:
+            frame += 1
+
             vid_writer_flow_normal.write(c_im0)
             # FASTFLOWNET
             t3 = time_synchronized()
@@ -199,7 +200,6 @@ class FastFlowYOLOPipeline:
 
             if flow_binary_sum <= 100:
                 print("No motion detected")
-                frame += 1
                 p_path, p_img, p_im0, p_vid_cap = c_path, c_img, c_im0, c_vid_cap
                 vid_writer_flow.write(flow)
                 vid_writer_flow_gray.write(flow_gray)
@@ -265,7 +265,7 @@ class FastFlowYOLOPipeline:
             vid_writer_flow_binary.write(flow_binary)
 
             vid_writer_yolo.write(im0_copy)
-            frame += 1
+
             p_path, p_img, p_im0, p_vid_cap = c_path, c_img, c_im0, c_vid_cap
             print(f"total time for frame: {((t6 - t3) / 1000):.3f}s")
 
