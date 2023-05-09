@@ -116,4 +116,4 @@ def test_data(prediction_folder, dst_folder):
     # }, ignore_index=True)
 
     df_all.to_csv(all_metrics_dst, index=False)
-    df_all.describe().to_csv(desc_metrics_dst, index=False)
+    df_all.describe().to_csv(desc_metrics_dst)
