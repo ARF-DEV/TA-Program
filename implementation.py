@@ -267,10 +267,10 @@ class FastFlowYOLOPipeline:
             vid_writer_yolo.write(im0_copy)
 
             p_path, p_img, p_im0, p_vid_cap = c_path, c_img, c_im0, c_vid_cap
-            print(f"total time for frame: {((t6 - t3) / 1000):.3f}s")
+            print(f"total time for frame: {((t6 - t3)):.3f}s")
 
         t2 = time_synchronized()
-        print(f"Total time: {((t2 - t1) / 1000):.3f}s")
+        print(f"Total time: {((t2 - t1)):.3f}s")
         frame_flow_sum_data.to_csv(
             Path(save_dir / "fastflow_rgb_sum.csv"), index=False)
 

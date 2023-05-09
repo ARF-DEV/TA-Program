@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import seaborn as sn
 
 
-def apply_to_folders(model, paths, mode='normal'):
+def apply_to_folders(model, paths, mode):
     if not isinstance(model, FastFlowYOLOPipeline):
         raise Exception('model must be an instance of FastFlowYOLOPipeline')
     all_files = []
