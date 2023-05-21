@@ -13,7 +13,7 @@ import helper
 # # detect_image_no_cmd('videos/Burglary001_x264.mp4', 'weights/yolov7.pt', True, 640, torch.device('cuda'))
 
 pipeline = model.FastFlowYOLOPipeline(
-    'weights/yolov7.pt', 'weights/fastflownet_gtav.pth', 'inference', False, 'test', binary_tresh=200, binary_sum_tresh=2000)
+    'weights/yolov7.pt', 'weights/fastflownet_gtav.pth', 'inference', False, 'test', binary_tresh=200, binary_sum_tresh=1100)
 
 # optical_flow_estimation('videos/Stealing108_x264.mp4', 'weights/fastflownet_gtav.pth',
 # testing=False, save_in_rgb=False, save_img=True)
