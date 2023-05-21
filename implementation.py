@@ -18,7 +18,7 @@ import random
 
 
 class FastFlowYOLOPipeline:
-    def __init__(self, yolo_weights, fastflownet_weights, inference_path, path_exist_ok, folder_name, binary_tresh):
+    def __init__(self, yolo_weights, fastflownet_weights, inference_path, path_exist_ok, folder_name, binary_tresh, binary_sum_tresh):
         self.device = torch.device(
             'cuda' if torch.cuda.is_available() else 'cpu')
         self.FFN = FastFlowNet().cuda().eval()
@@ -43,6 +43,7 @@ class FastFlowYOLOPipeline:
             self.half = True
             self.YOLO.half()  # to FP16
         self.binary_tresh = binary_tresh
+        self.binary_sum_tresh = binary_sum_tresh
 
     def detect(self, img, im0):
         t1 = time_synchronized()
@@ -198,7 +199,7 @@ class FastFlowYOLOPipeline:
             frame_flow_binary_sum_data = pd.concat(
                 [frame_flow_binary_sum_data, new_data_binary], ignore_index=True)
 
-            if flow_binary_sum <= 100:
+            if flow_binary_sum <= self.binary_sum_tresh:
                 print("No motion detected")
                 p_path, p_img, p_im0, p_vid_cap = c_path, c_img, c_im0, c_vid_cap
                 vid_writer_flow.write(flow)

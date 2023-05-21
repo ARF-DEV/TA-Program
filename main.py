@@ -13,14 +13,14 @@ import helper
 # # detect_image_no_cmd('videos/Burglary001_x264.mp4', 'weights/yolov7.pt', True, 640, torch.device('cuda'))
 
 pipeline = model.FastFlowYOLOPipeline(
-    'weights/yolov7.pt', 'weights/fastflownet_gtav.pth', 'inference', False, 'test', binary_tresh=200)
+    'weights/yolov7.pt', 'weights/fastflownet_gtav.pth', 'inference', False, 'test', binary_tresh=200, binary_sum_tresh=2000)
 
 # optical_flow_estimation('videos/Stealing108_x264.mp4', 'weights/fastflownet_gtav.pth',
 # testing=False, save_in_rgb=False, save_img=True)
 # pipeline.detect_and_optical_flow(
 # 'videos/Robbery098_x264.mp4')
 helper.apply_to_folders(
-    pipeline, ['resized/*.mp4', 'videos/Stealing*.mp4', 'videos/Robbery*.mp4', 'videos/Burglary*.mp4'], 'Opening')
+    pipeline, ['resized/*.mp4', 'videos/Stealing*.mp4', 'videos/Robbery*.mp4', 'videos/Burglary*.mp4'], 'Normal')
 
 
 print('Done.')

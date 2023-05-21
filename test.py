@@ -1,2 +1,9 @@
 import helper
-helper.test_data("7th_change/", "analysis/7th_change_test/")
+helper.test_data("500_bst/", "analysis/500_bst/")
+helper.test_data("700_bst/", "analysis/700_bst/")
+helper.test_data("900_bst/", "analysis/900_bst/")
+helper.test_data("1100_bst/", "analysis/1100_bst/")
+helper.test_data("1500_bst/", "analysis/1500_bst/")
+helper.test_data("1700_bst/", "analysis/1700_bst/")
+helper.test_data("1900_bst/", "analysis/1900_bst/")
+helper.test_data("2000_bst/", "analysis/2000_bst/")
