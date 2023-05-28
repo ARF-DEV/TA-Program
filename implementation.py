@@ -112,58 +112,72 @@ class FastFlowYOLOPipeline:
                               255, cv2.THRESH_BINARY_INV)[1]
         return flow_color, flow_gray, im_bw
 
-    def detect_and_optical_flow(self, source, mode='normal'):
+    def detect_and_optical_flow(self, source, useMorph, debug, output_path=None):
         set_logging()
         image_size = check_img_size(
             self.image_size, s=self.stride)  # check img_size
         dataset = LoadImages(source, img_size=image_size, stride=self.stride)
         save_dir = Path(increment_path(Path(self.inference_path) /
-                        Path(dataset.get_file_name()).name, exist_ok=self.path_exist_ok))  # increment run
-        save_dir.mkdir(parents=True, exist_ok=True)
+                                       Path(dataset.get_file_name()).name, exist_ok=self.path_exist_ok))  # increment run
+        if debug:
+            save_dir.mkdir(parents=True, exist_ok=True)
+
         t1 = time_synchronized()
         frame = 1
         p_path, p_img, p_im0, p_vid_cap = next(dataset)
-        frame_flow_sum_data = pd.DataFrame(columns=['frame', 'flow_sum'])
-        frame_flow_movement = pd.DataFrame(
-            columns=['Frame', 'Penting'])
-        frame_flow_gray_sum_data = pd.DataFrame(columns=['frame', 'flow_sum'])
-        frame_flow_binary_sum_data = pd.DataFrame(
-            columns=['frame', 'flow_sum'])
-        frame_important = pd.DataFrame(columns=['frame', 'objects'])
+        if debug:
+            frame_flow_sum_data = pd.DataFrame(columns=['frame', 'flow_sum'])
+            frame_flow_movement = pd.DataFrame(
+                columns=['Frame', 'Penting'])
+            frame_flow_gray_sum_data = pd.DataFrame(
+                columns=['frame', 'flow_sum'])
+            frame_flow_binary_sum_data = pd.DataFrame(
+                columns=['frame', 'flow_sum'])
+            frame_important = pd.DataFrame(columns=['frame', 'objects'])
+            save_path_flow = str(save_dir / "rgb_flow_video.mp4")
+            save_path_flow_gray = str(save_dir / "gray_flow_video.mp4")
+            save_path_flow_binary = str(save_dir / "binary_flow_video.mp4")
+            save_path_normal = str(save_dir / "normal_video.mp4")
+            save_path_yolo = str(save_dir / "yolo_video.mp4")
+            save_path_final = str(save_dir / "final_video.mp4")
+        else:
+            if output_path is None:
+                save_path_flow = Path("")
+            else:
+                save_path_final = Path(output_path)
+                if not save_path_final.exists():
+                    save_path_final.mkdir()
 
-        save_path_flow = str(save_dir / "rgb_flow_video.mp4")
-        save_path_flow_gray = str(save_dir / "gray_flow_video.mp4")
-        save_path_flow_binary = str(save_dir / "binary_flow_video.mp4")
-        save_path_normal = str(save_dir / "normal_video.mp4")
-        save_path_yolo = str(save_dir / "yolo_video.mp4")
-        save_path_final = str(save_dir / "final_video.mp4")
-
-        print(f"save_path: {save_dir}")
+            save_path_final = save_path_final / (Path(dataset.get_file_name()).name.split('.')[0] +
+                                                 "_final.mp4")
+        print(f"save_path: {save_path_final}\n")
         fps = p_vid_cap.get(cv2.CAP_PROP_FPS)
         w = int(p_vid_cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         h = int(p_vid_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        vid_writer_flow = cv2.VideoWriter(
-            str(save_path_flow), cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
-        vid_writer_flow_gray = cv2.VideoWriter(
-            str(save_path_flow_gray), cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h), 0)
-        vid_writer_flow_binary = cv2.VideoWriter(
-            str(save_path_flow_binary), cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h), 0)
-        vid_writer_flow_normal = cv2.VideoWriter(
-            str(save_path_normal), cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
-        vid_writer_yolo = cv2.VideoWriter(
-            str(save_path_yolo), cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
+        if debug:
+            vid_writer_flow = cv2.VideoWriter(
+                str(save_path_flow), cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
+            vid_writer_flow_gray = cv2.VideoWriter(
+                str(save_path_flow_gray), cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h), 0)
+            vid_writer_flow_binary = cv2.VideoWriter(
+                str(save_path_flow_binary), cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h), 0)
+            vid_writer_flow_normal = cv2.VideoWriter(
+                str(save_path_normal), cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
+            vid_writer_yolo = cv2.VideoWriter(
+                str(save_path_yolo), cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
         vid_writer_final = cv2.VideoWriter(
             str(save_path_final), cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
+
         for c_path, c_img, c_im0, c_vid_cap in dataset:
             frame += 1
-
-            vid_writer_flow_normal.write(c_im0)
+            if debug:
+                vid_writer_flow_normal.write(c_im0)
             # FASTFLOWNET
             t3 = time_synchronized()
             flow, flow_gray, flow_binary = self.optical_flow(p_im0, c_im0)
 
             # Using morphologyEx() method for opening operation (erode & dilate)
-            if mode == 'Opening':
+            if useMorph:
                 print("Opening Method")
                 kernel = np.ones((5, 5), np.uint8)
                 flow_binary = cv2.morphologyEx(
@@ -179,39 +193,41 @@ class FastFlowYOLOPipeline:
             print(f"Optical flow time: {t4 - t3:.3f}s")
 
             # save flow_sum to a file
-            new_data = pd.DataFrame({
-                'frame': [frame],
-                'flow_sum': [flow_sum]
-            })
-            new_data_gray = pd.DataFrame({
-                'frame': [frame],
-                'flow_sum': [flow_gray_sum]
-            })
-            new_data_binary = pd.DataFrame({
-                'frame': [frame],
-                'flow_sum': [flow_binary_sum]
-            })
 
-            frame_flow_sum_data = pd.concat(
-                [frame_flow_sum_data, new_data], ignore_index=True)
-            frame_flow_gray_sum_data = pd.concat(
-                [frame_flow_gray_sum_data, new_data_gray], ignore_index=True)
-            frame_flow_binary_sum_data = pd.concat(
-                [frame_flow_binary_sum_data, new_data_binary], ignore_index=True)
+            if debug:
+                new_data = pd.DataFrame({
+                    'frame': [frame],
+                    'flow_sum': [flow_sum]
+                })
+                new_data_gray = pd.DataFrame({
+                    'frame': [frame],
+                    'flow_sum': [flow_gray_sum]
+                })
+                new_data_binary = pd.DataFrame({
+                    'frame': [frame],
+                    'flow_sum': [flow_binary_sum]
+                })
+                frame_flow_sum_data = pd.concat(
+                    [frame_flow_sum_data, new_data], ignore_index=True)
+                frame_flow_gray_sum_data = pd.concat(
+                    [frame_flow_gray_sum_data, new_data_gray], ignore_index=True)
+                frame_flow_binary_sum_data = pd.concat(
+                    [frame_flow_binary_sum_data, new_data_binary], ignore_index=True)
 
             if flow_binary_sum <= self.binary_sum_tresh:
                 print("No motion detected")
                 p_path, p_img, p_im0, p_vid_cap = c_path, c_img, c_im0, c_vid_cap
-                vid_writer_flow.write(flow)
-                vid_writer_flow_gray.write(flow_gray)
-                vid_writer_flow_binary.write(flow_binary)
-                vid_writer_flow.write(flow)
-                new_movement_data = pd.DataFrame({
-                    'Frame': [frame],
-                    'Penting': False,
-                })
-                frame_flow_movement = pd.concat(
-                    [frame_flow_movement, new_movement_data], ignore_index=True)
+
+                if debug:
+                    vid_writer_flow_gray.write(flow_gray)
+                    vid_writer_flow_binary.write(flow_binary)
+                    vid_writer_flow.write(flow)
+                    new_movement_data = pd.DataFrame({
+                        'Frame': [frame],
+                        'Penting': False,
+                    })
+                    frame_flow_movement = pd.concat(
+                        [frame_flow_movement, new_movement_data], ignore_index=True)
                 continue
 
             if type(c_img) is np.ndarray:
@@ -247,49 +263,56 @@ class FastFlowYOLOPipeline:
                 'Frame': [frame],
                 'Penting': True,
             })
-            frame_flow_movement = pd.concat(
-                [frame_flow_movement, new_movement_data], ignore_index=True)
+            if debug:
+                frame_flow_movement = pd.concat(
+                    [frame_flow_movement, new_movement_data], ignore_index=True)
 
             if 'cars' in detected_classes_name or 'person' in detected_classes_name:
                 # save the frame
                 vid_writer_final.write(c_im0)
                 # save frame to dataframe
-                new_final = pd.DataFrame({
-                    'frame': [frame],
-                    'objects': [", ".join(detected_classes_name)]
-                })
-                frame_important = pd.concat(
-                    [frame_important, new_final], ignore_index=True)
+                if debug:
+                    new_final = pd.DataFrame({
+                        'frame': [frame],
+                        'objects': [", ".join(detected_classes_name)]
+                    })
+                    frame_important = pd.concat(
+                        [frame_important, new_final], ignore_index=True)
 
-            vid_writer_flow.write(flow)
-            vid_writer_flow_gray.write(flow_gray)
-            vid_writer_flow_binary.write(flow_binary)
+            if debug:
+                vid_writer_flow.write(flow)
+                vid_writer_flow_gray.write(flow_gray)
+                vid_writer_flow_binary.write(flow_binary)
 
-            vid_writer_yolo.write(im0_copy)
+                vid_writer_yolo.write(im0_copy)
 
             p_path, p_img, p_im0, p_vid_cap = c_path, c_img, c_im0, c_vid_cap
             print(f"total time for frame: {((t6 - t3)):.3f}s")
 
         t2 = time_synchronized()
         print(f"Total time: {((t2 - t1)):.3f}s")
-        frame_flow_sum_data.to_csv(
-            Path(save_dir / "fastflow_rgb_sum.csv"), index=False)
+        if debug:
+            frame_flow_sum_data.to_csv(
+                Path(save_dir / "fastflow_rgb_sum.csv"), index=False)
 
-        frame_flow_movement.to_csv(
-            Path(save_dir / "fastflow_movement.csv"), index=False)
-        frame_flow_gray_sum_data.to_csv(
-            Path(save_dir / "fastflow_gray_sum.csv"), index=False)
-        frame_flow_binary_sum_data.to_csv(
-            Path(save_dir / "fastflow_binary_sum.csv"), index=False)
-        frame_important.to_csv(
-            Path(save_dir / "important_frames.csv"), index=False)
-        vid_writer_flow.release()
-        vid_writer_flow_gray.release()
-        vid_writer_flow_binary.release()
-        vid_writer_flow_normal.release()
-        vid_writer_yolo.release()
+            frame_flow_movement.to_csv(
+                Path(save_dir / "fastflow_movement.csv"), index=False)
+            frame_flow_gray_sum_data.to_csv(
+                Path(save_dir / "fastflow_gray_sum.csv"), index=False)
+            frame_flow_binary_sum_data.to_csv(
+                Path(save_dir / "fastflow_binary_sum.csv"), index=False)
+            frame_important.to_csv(
+                Path(save_dir / "important_frames.csv"), index=False)
+            vid_writer_flow.release()
+            vid_writer_flow_gray.release()
+            vid_writer_flow_binary.release()
+            vid_writer_flow_normal.release()
+            vid_writer_yolo.release()
+
         vid_writer_final.release()
-        return Path(self.inference_path), frame_flow_binary_sum_data['flow_sum'].mean(), frame_flow_binary_sum_data['flow_sum'].median()
+        if debug:
+            return Path(self.inference_path), frame_flow_binary_sum_data['flow_sum'].mean(), frame_flow_binary_sum_data['flow_sum'].median()
+        return Path(self.inference_path), None, None
 
 
 def resize_video(source, target_size):
