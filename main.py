@@ -18,7 +18,7 @@ if video_path.exists() and video_path.is_file():
     pipeline = model.FastFlowYOLOPipeline(
         'weights/yolov7.pt', 'weights/fastflownet_gtav.pth', 'inference', False, 'test', binary_tresh=200, binary_sum_tresh=1100)
     pipeline.detect_and_optical_flow(
-        args.video, useMorph=False, debug=False, output_path="out")
+        args.video, debug=False, output_path="out")
 else:
     print('Video file not found.')
     exit()

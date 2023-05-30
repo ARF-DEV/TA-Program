@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import seaborn as sn
 
 
-def apply_to_folders(model, paths, mode):
+def apply_to_folders(model, paths):
     if not isinstance(model, FastFlowYOLOPipeline):
         raise Exception('model must be an instance of FastFlowYOLOPipeline')
     all_files = []
@@ -21,7 +21,8 @@ def apply_to_folders(model, paths, mode):
         print(f'{idx+1}. {file}')
     for file in all_files:
         print(f'processing {file}')
-        save_dir, mean, median = model.detect_and_optical_flow(file, mode=mode)
+        save_dir, mean, median = model.detect_and_optical_flow(
+            file, debug=True)
         mean_median_df = pd.DataFrame({
             'video': [file],
             'mean': [mean],

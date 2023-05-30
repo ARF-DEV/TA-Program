@@ -18,7 +18,7 @@ import random
 
 
 class FastFlowYOLOPipeline:
-    def __init__(self, yolo_weights, fastflownet_weights, inference_path, path_exist_ok, folder_name, binary_tresh, binary_sum_tresh):
+    def __init__(self, yolo_weights, fastflownet_weights, inference_path, path_exist_ok, binary_tresh, binary_sum_tresh, is_opening):
         self.device = torch.device(
             'cuda' if torch.cuda.is_available() else 'cpu')
         self.FFN = FastFlowNet().cuda().eval()
@@ -36,7 +36,7 @@ class FastFlowYOLOPipeline:
         self.div_size = 64
         self.inference_path = inference_path
         self.path_exist_ok = path_exist_ok
-        self.folder_name = folder_name
+        self.is_opening = is_opening
         select_device(self.device.type)
         if self.device != 'cpu':
             print("USING GPU")
@@ -112,7 +112,7 @@ class FastFlowYOLOPipeline:
                               255, cv2.THRESH_BINARY_INV)[1]
         return flow_color, flow_gray, im_bw
 
-    def detect_and_optical_flow(self, source, useMorph, debug, output_path=None):
+    def detect_and_optical_flow(self, source, debug, output_path=None):
         set_logging()
         image_size = check_img_size(
             self.image_size, s=self.stride)  # check img_size
@@ -177,7 +177,7 @@ class FastFlowYOLOPipeline:
             flow, flow_gray, flow_binary = self.optical_flow(p_im0, c_im0)
 
             # Using morphologyEx() method for opening operation (erode & dilate)
-            if useMorph:
+            if self.is_opening:
                 print("Opening Method")
                 kernel = np.ones((5, 5), np.uint8)
                 flow_binary = cv2.morphologyEx(
