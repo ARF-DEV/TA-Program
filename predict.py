@@ -9,7 +9,7 @@ print('Starting...')
 
 pipeline = model.FastFlowYOLOPipeline(
     'weights/yolov7.pt', 'weights/fastflownet_gtav.pth', 'inference',
-    False, binary_tresh=200, binary_sum_tresh=500, is_opening=True)
+    False, binary_tresh=200, binary_sum_tresh=400, is_opening=True)
 
 # optical_flow_estimation('videos/Stealing108_x264.mp4', 'weights/fastflownet_gtav.pth',
 # testing=False, save_in_rgb=False, save_img=True)
