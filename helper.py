@@ -116,9 +116,10 @@ def test_data(prediction_folder, dst_folder):
 
 def test_data_per_class(prediction_folder, dst_folder):
     if not (Path(dst_folder) / prediction_folder).exists():
-        (Path(dst_folder) / prediction_folder).mkdir()
+        (Path(dst_folder) / prediction_folder).mkdir(parents=True)
     labels = glob.glob('labels/*')
-    desc_metrics_dst = Path(dst_folder) / "mean_metrics.csv"
+    desc_metrics_dst = Path(dst_folder) / \
+        prediction_folder / "mean_metrics.csv"
     print(len(labels))
     df_all = pd.DataFrame(columns=["video", "precision", "recall", "f1"])
     n = 0
