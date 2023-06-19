@@ -18,7 +18,7 @@ bsts = [300, 500, 900, 1100, 1500, 1700, 1900]
 #     helper.apply_to_folders(
 #         pipeline, ['resized/*.mp4', 'videos/Stealing*.mp4', 'videos/Robbery*.mp4', 'videos/Burglary*.mp4', 'videos/Normal*.mp4'])
 pipeline = model.FastFlowYOLOPipeline(
-    'weights/yolov7.pt', 'weights/fastflownet_gtav.pth', 'inference',
+    'weights/yolov7.pt', 'weights/fastflownet_gtav.pth', 'inference/pred_with_confidance_score/',
     False, binary_tresh=200, binary_sum_tresh=300, is_opening=False)
 
 helper.apply_to_folders(

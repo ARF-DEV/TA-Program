@@ -263,7 +263,7 @@ class FastFlowYOLOPipeline:
             print(f"YOLO time: {t6 - t5:.3f}s")
 
             for cls, conf in detected_classes_name:
-                if cls in self.important_objects and conf > 0.5:
+                if cls in self.important_objects and conf > 0.6:
                     new_movement_data = pd.DataFrame({
                         'Frame': [frame],
                         'Penting': True,
