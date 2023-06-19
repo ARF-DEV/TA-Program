@@ -47,7 +47,7 @@ def test_data(prediction_folder, dst_folder):
     if not dst_path.exists():
         dst_path.mkdir(parents=True)
     print("DOOOR")
-    labels = glob.glob('labels/*')
+    labels = glob.glob('labels/labels TA*')
     all_metrics_dst = dst_path / "metrics.csv"
     desc_metrics_dst = dst_path / "mean_metrics.csv"
     print(len(labels))

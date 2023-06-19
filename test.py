@@ -18,7 +18,8 @@ paths = glob.glob("inference/__new_banget_ini_mah/*_bst")
 for path in paths:
     print(path)
     print()
-    helper.test_data(path, "analysis/new_banget_ini_mah")
+    helper.test_data_per_class(
+        path, "analysis/new_banget_ini_mah_per_label_without_normal/")
     print()
     print()
     print()

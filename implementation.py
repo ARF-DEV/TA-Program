@@ -19,6 +19,7 @@ import random
 
 class FastFlowYOLOPipeline:
     def __init__(self, yolo_weights, fastflownet_weights, inference_path, path_exist_ok, binary_tresh, binary_sum_tresh, is_opening):
+        self.important_objects = ['car', 'person']
         self.device = torch.device(
             'cuda' if torch.cuda.is_available() else 'cpu')
         self.FFN = FastFlowNet().cuda().eval()
@@ -60,9 +61,11 @@ class FastFlowYOLOPipeline:
             s = ''
             det[:, :4] = scale_coords(
                 img.shape[2:], det[:, :4], im0.shape).round()
+            # for *xyxy, conf, cls in reversed(det):
+            #     detected_classes_name.append((self.yolo_names[int(cls)], conf))
             for c in det[:, -1].unique():
                 n = (det[:, -1] == c).sum()  # detections per class
-                detected_classes_name.append(self.yolo_names[int(c)])
+                detected_classes_name.append((self.yolo_names[int(c)]))
                 # add to string
                 s += f"{n} {self.yolo_names[int(c)]}{'s' * (n > 1)}, "
             print(f"class: {s}")
@@ -259,7 +262,36 @@ class FastFlowYOLOPipeline:
             t6 = time_synchronized()
             print(f"YOLO time: {t6 - t5:.3f}s")
 
-            if 'cars' in detected_classes_name or 'person' in detected_classes_name:
+            # for cls, conf in detected_classes_name:
+            #     if cls in self.important_objects and conf > 0.5:
+            #         new_movement_data = pd.DataFrame({
+            #             'Frame': [frame],
+            #             'Penting': True,
+            #         })
+            #         if debug:
+            #             frame_flow_movement = pd.concat(
+            #                 [frame_flow_movement, new_movement_data], ignore_index=True)
+            #         # save the frame
+            #         vid_writer_final.write(c_im0)
+            #         # save frame to dataframe
+            #         if debug:
+            #             new_final = pd.DataFrame({
+            #                 'frame': [frame],
+            #                 'objects': [", ".join(detected_classes_name)]
+            #             })
+            #             frame_important = pd.concat(
+            #                 [frame_important, new_final], ignore_index=True)
+            #         break
+            #     else:
+            #         new_movement_data = pd.DataFrame({
+            #             'Frame': [frame],
+            #             'Penting': False,
+            #         })
+            #         if debug:
+            #             frame_flow_movement = pd.concat(
+            #                 [frame_flow_movement, new_movement_data], ignore_index=True)
+
+            if 'car' in detected_classes_name or 'person' in detected_classes_name:
                 if debug:
                     new_movement_data = pd.DataFrame({
                         'Frame': [frame],
