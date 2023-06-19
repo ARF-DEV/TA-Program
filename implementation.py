@@ -262,34 +262,39 @@ class FastFlowYOLOPipeline:
             t6 = time_synchronized()
             print(f"YOLO time: {t6 - t5:.3f}s")
 
+            isImportant = False
             for cls, conf in detected_classes_name:
                 if cls in self.important_objects and conf > 0.6:
+                    isImportant = True
+                    break
+
+            if isImportant:
+                print("Important")
+                if debug:
                     new_movement_data = pd.DataFrame({
                         'Frame': [frame],
                         'Penting': True,
                     })
-                    if debug:
-                        frame_flow_movement = pd.concat(
-                            [frame_flow_movement, new_movement_data], ignore_index=True)
-                    # save the frame
-                    vid_writer_final.write(c_im0)
-                    # save frame to dataframe
-                    if debug:
-                        new_final = pd.DataFrame({
-                            'frame': [frame],
-                            'objects': [", ".join(detected_classes_name)]
-                        })
-                        frame_important = pd.concat(
-                            [frame_important, new_final], ignore_index=True)
-                    break
-                else:
-                    new_movement_data = pd.DataFrame({
-                        'Frame': [frame],
-                        'Penting': False,
+                    frame_flow_movement = pd.concat(
+                        [frame_flow_movement, new_movement_data], ignore_index=True)
+                # save the frame
+                vid_writer_final.write(c_im0)
+                # save frame to dataframe
+                if debug:
+                    new_final = pd.DataFrame({
+                        'frame': [frame],
+                        'objects': [", ".join([x for x, _ in detected_classes_name])]
                     })
-                    if debug:
-                        frame_flow_movement = pd.concat(
-                            [frame_flow_movement, new_movement_data], ignore_index=True)
+                    frame_important = pd.concat(
+                        [frame_important, new_final], ignore_index=True)
+            else:
+                new_movement_data = pd.DataFrame({
+                    'Frame': [frame],
+                    'Penting': False,
+                })
+                if debug:
+                    frame_flow_movement = pd.concat(
+                        [frame_flow_movement, new_movement_data], ignore_index=True)
 
             # if 'car' in detected_classes_name or 'person' in detected_classes_name:
             #     if debug:
