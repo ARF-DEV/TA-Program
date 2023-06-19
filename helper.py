@@ -43,20 +43,22 @@ def resize_videos(pathname):
 
 
 def test_data(prediction_folder, dst_folder):
-    if not Path(dst_folder).exists():
-        Path(dst_folder).mkdir()
+    dst_path = (Path(dst_folder) / prediction_folder)
+    if not dst_path.exists():
+        dst_path.mkdir(parents=True)
+    print("DOOOR")
     labels = glob.glob('labels/*')
-    all_metrics_dst = Path(dst_folder) / "metrics.csv"
-    desc_metrics_dst = Path(dst_folder) / "mean_metrics.csv"
+    all_metrics_dst = dst_path / "metrics.csv"
+    desc_metrics_dst = dst_path / "mean_metrics.csv"
     print(len(labels))
     df_all = pd.DataFrame(columns=["video", "precision", "recall", "f1"])
     n = 0
     for l in labels:
         video_name = ".".join(l.split(" ")[-1].split(".")[0:2])
-        path = Path("inference") / prediction_folder / \
+        path = Path(prediction_folder) / \
             video_name / "fastflow_movement.csv"
         if path.exists():
-            image_dir = Path(dst_folder) / (video_name+".png")
+            image_dir = dst_path / (video_name+".png")
             pred = pd.read_csv(path)
             actual = pd.read_csv(l)
             print(f"pred path: {path}")
@@ -73,11 +75,11 @@ def test_data(prediction_folder, dst_folder):
             c = confusion_matrix(
                 actual['Penting'].iloc[0: min_length], pred['Penting'].iloc[0: min_length])
             ps = precision_score(
-                actual['Penting'].iloc[0: min_length], pred['Penting'].iloc[0: min_length])
+                actual['Penting'].iloc[0: min_length], pred['Penting'].iloc[0: min_length], zero_division=1)
             rs = recall_score(
-                actual['Penting'].iloc[0: min_length], pred['Penting'].iloc[0: min_length])
+                actual['Penting'].iloc[0: min_length], pred['Penting'].iloc[0: min_length], zero_division=1)
             fs = f1_score(actual['Penting'].iloc[0: min_length],
-                          pred['Penting'].iloc[0: min_length])
+                          pred['Penting'].iloc[0: min_length], zero_division=1)
             df_all = pd.concat([df_all, pd.DataFrame({
                 "video": [vid_name],
                 "precision": [ps],
@@ -121,7 +123,8 @@ def test_data_per_class(prediction_folder, dst_folder):
     desc_metrics_dst = Path(dst_folder) / \
         prediction_folder / "mean_metrics.csv"
     print(len(labels))
-    df_all = pd.DataFrame(columns=["video", "precision", "recall", "f1"])
+    tn = 0
+    fn = 0
     n = 0
     mean_tps = 0
     mean_trs = 0
@@ -134,8 +137,9 @@ def test_data_per_class(prediction_folder, dst_folder):
     mean_wps = 0
     for l in labels:
         video_name = ".".join(l.split(" ")[-1].split(".")[0:2])
-        path = Path("inference") / prediction_folder / \
+        path = Path(prediction_folder) / \
             video_name / "fastflow_movement.csv"
+        print("Path: " + path.__str__())
         if path.exists():
             pred = pd.read_csv(path)
             actual = pd.read_csv(l)
@@ -151,14 +155,27 @@ def test_data_per_class(prediction_folder, dst_folder):
 
             min_length = min(actual['Penting'].size, pred['Penting'].size)
             c = classification_report(
-                actual['Penting'].iloc[0: min_length], pred['Penting'].iloc[0: min_length], output_dict=True)
-            t_precision = c['True']['precision']
-            t_recall = c['True']['recall']
-            t_f1 = c['True']['f1-score']
+                actual['Penting'].iloc[0: min_length], pred['Penting'].iloc[0: min_length], output_dict=True, zero_division=1)
+            # print(c)
 
-            f_precision = c['False']['precision']
-            f_recall = c['False']['recall']
-            f_f1 = c['False']['f1-score']
+            t_precision = 0
+            t_recall = 0
+            t_f1 = 0
+            if 'True' in c:
+                tn += 1
+                t_precision = c['True']['precision']
+                t_recall = c['True']['recall']
+                t_f1 = c['True']['f1-score']
+
+            f_precision = 0
+            f_recall = 0
+            f_f1 = 0
+            if 'False' in c:
+                fn += 1
+                f_precision = c['False']['precision']
+                f_recall = c['False']['recall']
+                f_f1 = c['False']['f1-score']
+
             c_df = pd.DataFrame(c).transpose()
             c_df.to_csv(Path(dst_folder) /
                         prediction_folder / (vid_name + ".csv"))
@@ -174,10 +191,10 @@ def test_data_per_class(prediction_folder, dst_folder):
             mean_wfs = mean_wfs + c['weighted avg']['f1-score']
 
     print(f"n = {n}")
-    mean_ffs = mean_ffs / n
-    mean_frs = mean_frs / n
-    mean_fps = mean_fps / n
-    mean_tfs = mean_tfs / n
+    mean_ffs = mean_ffs / fn
+    mean_frs = mean_frs / fn
+    mean_fps = mean_fps / fn
+    mean_tfs = mean_tfs / tn
     mean_trs = mean_trs / n
     mean_tps = mean_tps / n
     mean_wps = mean_wps / n

@@ -259,15 +259,14 @@ class FastFlowYOLOPipeline:
             t6 = time_synchronized()
             print(f"YOLO time: {t6 - t5:.3f}s")
 
-            new_movement_data = pd.DataFrame({
-                'Frame': [frame],
-                'Penting': True,
-            })
-            if debug:
-                frame_flow_movement = pd.concat(
-                    [frame_flow_movement, new_movement_data], ignore_index=True)
-
             if 'cars' in detected_classes_name or 'person' in detected_classes_name:
+                if debug:
+                    new_movement_data = pd.DataFrame({
+                        'Frame': [frame],
+                        'Penting': True,
+                    })
+                    frame_flow_movement = pd.concat(
+                        [frame_flow_movement, new_movement_data], ignore_index=True)
                 # save the frame
                 vid_writer_final.write(c_im0)
                 # save frame to dataframe
@@ -278,6 +277,14 @@ class FastFlowYOLOPipeline:
                     })
                     frame_important = pd.concat(
                         [frame_important, new_final], ignore_index=True)
+            else:
+                new_movement_data = pd.DataFrame({
+                    'Frame': [frame],
+                    'Penting': False,
+                })
+                if debug:
+                    frame_flow_movement = pd.concat(
+                        [frame_flow_movement, new_movement_data], ignore_index=True)
 
             if debug:
                 vid_writer_flow.write(flow)
