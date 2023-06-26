@@ -11,7 +11,7 @@ import glob
 # helper.test_data("500_bst_opening/", "analysis/500_bst_opening/")
 # helper.test_data("400_bst_opening/", "analysis/400_bst_opening/")
 
-paths = glob.glob("inference/pred_with_confidance_score_300_opening")
+paths = glob.glob("inference/__ini_yg_paling_baru_confidence_score/*")
 # for i, _ in enumerate(paths):
 #     paths[i] = paths[i].split('/')[-1]
 
