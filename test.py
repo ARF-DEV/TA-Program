@@ -19,7 +19,7 @@ for path in paths:
     print(path)
     print()
     helper.test_data_per_class(
-        path, "analysis/new_banget_ini_mah_per_label_300_bst_opening/")
+        path, "analysis/new_new_conf/")
     print()
     print()
     print()
