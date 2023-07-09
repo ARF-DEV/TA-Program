@@ -22,6 +22,7 @@ class FastFlowYOLOPipeline:
         self.important_objects = ['car', 'person']
         self.device = torch.device(
             'cuda' if torch.cuda.is_available() else 'cpu')
+        print('Using', self.device.type)
         self.FFN = FastFlowNet().cuda().eval()
         self.FFN.load_state_dict(torch.load(fastflownet_weights))
         self.YOLO = attempt_load(yolo_weights, map_location=self.device).eval()
@@ -47,14 +48,9 @@ class FastFlowYOLOPipeline:
         self.binary_sum_tresh = binary_sum_tresh
 
     def detect(self, img, im0):
-        t1 = time_synchronized()
         with torch.no_grad():   # Calculating gradients would cause a GPU memory leak
             pred = self.YOLO(img, augment=False)[0]
-        t2 = time_synchronized()
         pred = non_max_suppression(pred, self.conf_thres, self.iou_thres)
-        t3 = time_synchronized()
-        print(f'Detection time: {t2 - t1:.3f}s')
-        print(f'NMS time: {t3 - t2:.3f}s')
 
         detected_classes_name = []
         for i, det in enumerate(pred):
@@ -145,7 +141,7 @@ class FastFlowYOLOPipeline:
             save_path_final = str(save_dir / "final_video.mp4")
         else:
             if output_path is None:
-                save_path_flow = Path("")
+                save_path_final = Path("")
             else:
                 save_path_final = Path(output_path)
                 if not save_path_final.exists():
