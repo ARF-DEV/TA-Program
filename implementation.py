@@ -22,6 +22,7 @@ class FastFlowYOLOPipeline:
         self.important_objects = ['car', 'person']
         self.device = torch.device(
             'cuda' if torch.cuda.is_available() else 'cpu')
+        print('Using', self.device.type)
         self.FFN = FastFlowNet().cuda().eval()
         self.FFN.load_state_dict(torch.load(fastflownet_weights))
         self.YOLO = attempt_load(yolo_weights, map_location=self.device).eval()
@@ -47,28 +48,23 @@ class FastFlowYOLOPipeline:
         self.binary_sum_tresh = binary_sum_tresh
 
     def detect(self, img, im0):
-        t1 = time_synchronized()
         with torch.no_grad():   # Calculating gradients would cause a GPU memory leak
             pred = self.YOLO(img, augment=False)[0]
-        t2 = time_synchronized()
         pred = non_max_suppression(pred, self.conf_thres, self.iou_thres)
-        t3 = time_synchronized()
-        print(f'Detection time: {t2 - t1:.3f}s')
-        print(f'NMS time: {t3 - t2:.3f}s')
 
         detected_classes_name = []
         for i, det in enumerate(pred):
             s = ''
             det[:, :4] = scale_coords(
                 img.shape[2:], det[:, :4], im0.shape).round()
-            # for *xyxy, conf, cls in reversed(det):
-            #     detected_classes_name.append((self.yolo_names[int(cls)], conf))
-            for c in det[:, -1].unique():
-                n = (det[:, -1] == c).sum()  # detections per class
-                detected_classes_name.append((self.yolo_names[int(c)]))
-                # add to string
-                s += f"{n} {self.yolo_names[int(c)]}{'s' * (n > 1)}, "
-            print(f"class: {s}")
+            for *xyxy, conf, cls in reversed(det):
+                detected_classes_name.append((self.yolo_names[int(cls)], conf))
+            # for c in det[:, -1].unique():
+            #     n = (det[:, -1] == c).sum()  # detections per class
+            #     detected_classes_name.append((self.yolo_names[int(c)]))
+            #     # add to string
+            #     s += f"{n} {self.yolo_names[int(c)]}{'s' * (n > 1)}, "
+            # print(f"class: {s}")
         return det, detected_classes_name
 
     def optical_flow(self, img1, img2):
@@ -145,7 +141,7 @@ class FastFlowYOLOPipeline:
             save_path_final = str(save_dir / "final_video.mp4")
         else:
             if output_path is None:
-                save_path_flow = Path("")
+                save_path_final = Path("")
             else:
                 save_path_final = Path(output_path)
                 if not save_path_final.exists():
@@ -262,36 +258,14 @@ class FastFlowYOLOPipeline:
             t6 = time_synchronized()
             print(f"YOLO time: {t6 - t5:.3f}s")
 
-            # for cls, conf in detected_classes_name:
-            #     if cls in self.important_objects and conf > 0.5:
-            #         new_movement_data = pd.DataFrame({
-            #             'Frame': [frame],
-            #             'Penting': True,
-            #         })
-            #         if debug:
-            #             frame_flow_movement = pd.concat(
-            #                 [frame_flow_movement, new_movement_data], ignore_index=True)
-            #         # save the frame
-            #         vid_writer_final.write(c_im0)
-            #         # save frame to dataframe
-            #         if debug:
-            #             new_final = pd.DataFrame({
-            #                 'frame': [frame],
-            #                 'objects': [", ".join(detected_classes_name)]
-            #             })
-            #             frame_important = pd.concat(
-            #                 [frame_important, new_final], ignore_index=True)
-            #         break
-            #     else:
-            #         new_movement_data = pd.DataFrame({
-            #             'Frame': [frame],
-            #             'Penting': False,
-            #         })
-            #         if debug:
-            #             frame_flow_movement = pd.concat(
-            #                 [frame_flow_movement, new_movement_data], ignore_index=True)
+            isImportant = False
+            for cls, conf in detected_classes_name:
+                if cls in self.important_objects and conf > 0.6:
+                    isImportant = True
+                    break
 
-            if 'car' in detected_classes_name or 'person' in detected_classes_name:
+            if isImportant:
+                print("Important")
                 if debug:
                     new_movement_data = pd.DataFrame({
                         'Frame': [frame],
@@ -305,7 +279,7 @@ class FastFlowYOLOPipeline:
                 if debug:
                     new_final = pd.DataFrame({
                         'frame': [frame],
-                        'objects': [", ".join(detected_classes_name)]
+                        'objects': [", ".join([x for x, _ in detected_classes_name])]
                     })
                     frame_important = pd.concat(
                         [frame_important, new_final], ignore_index=True)
@@ -317,6 +291,33 @@ class FastFlowYOLOPipeline:
                 if debug:
                     frame_flow_movement = pd.concat(
                         [frame_flow_movement, new_movement_data], ignore_index=True)
+
+            # if 'car' in detected_classes_name or 'person' in detected_classes_name:
+            #     if debug:
+            #         new_movement_data = pd.DataFrame({
+            #             'Frame': [frame],
+            #             'Penting': True,
+            #         })
+            #         frame_flow_movement = pd.concat(
+            #             [frame_flow_movement, new_movement_data], ignore_index=True)
+            #     # save the frame
+            #     vid_writer_final.write(c_im0)
+            #     # save frame to dataframe
+            #     if debug:
+            #         new_final = pd.DataFrame({
+            #             'frame': [frame],
+            #             'objects': [", ".join(detected_classes_name)]
+            #         })
+            #         frame_important = pd.concat(
+            #             [frame_important, new_final], ignore_index=True)
+            # else:
+            #     new_movement_data = pd.DataFrame({
+            #         'Frame': [frame],
+            #         'Penting': False,
+            #     })
+            #     if debug:
+            #         frame_flow_movement = pd.concat(
+            #             [frame_flow_movement, new_movement_data], ignore_index=True)
 
             if debug:
                 vid_writer_flow.write(flow)

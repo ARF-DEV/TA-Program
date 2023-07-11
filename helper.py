@@ -190,13 +190,13 @@ def test_data_per_class(prediction_folder, dst_folder):
             mean_wrs = mean_wrs + c['weighted avg']['recall']
             mean_wfs = mean_wfs + c['weighted avg']['f1-score']
 
-    print(f"n = {n}")
+    print(f"n = {n}, tn = {tn}, fn = {fn}")
     mean_ffs = mean_ffs / fn
     mean_frs = mean_frs / fn
     mean_fps = mean_fps / fn
     mean_tfs = mean_tfs / tn
-    mean_trs = mean_trs / n
-    mean_tps = mean_tps / n
+    mean_trs = mean_trs / tn
+    mean_tps = mean_tps / tn
     mean_wps = mean_wps / n
     mean_wrs = mean_wrs / n
     mean_wfs = mean_wfs / n
