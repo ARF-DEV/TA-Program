@@ -181,8 +181,7 @@ class FastFlowYOLOPipeline:
                 vid_writer_flow_normal.write(c_im0)
             # FASTFLOWNET
             t3 = time_synchronized()
-            with torch.no_grad():
-                flow, flow_gray, flow_binary = self.optical_flow(p_im0, c_im0)
+            flow, flow_gray, flow_binary = self.optical_flow(p_im0, c_im0)
 
             # Using morphologyEx() method for opening operation (erode & dilate)
             if self.is_opening:
