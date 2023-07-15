@@ -23,8 +23,12 @@ class FastFlowYOLOPipeline:
         self.device = torch.device(
             'cuda' if torch.cuda.is_available() else 'cpu')
         print('Using', self.device.type)
-        self.FFN = FastFlowNet().cuda().eval()
-        self.FFN.load_state_dict(torch.load(fastflownet_weights))
+        if self.device.type != 'cpu':
+            self.FFN = FastFlowNet().cuda().eval()
+        else:
+            self.FFN = FastFlowNet().eval()
+        self.FFN.load_state_dict(torch.load(
+            fastflownet_weights, map_location=self.device))
         self.YOLO = attempt_load(yolo_weights, map_location=self.device).eval()
         self.image_size = 320
         self.stride = int(self.YOLO.stride.max())  # model stride
@@ -40,10 +44,13 @@ class FastFlowYOLOPipeline:
         self.path_exist_ok = path_exist_ok
         self.is_opening = is_opening
         select_device(self.device.type)
-        if self.device != 'cpu':
+        if self.device.type != 'cpu':
             print("USING GPU")
             self.half = True
             self.YOLO.half()  # to FP16
+        else:
+            print("USING CPU")
+            self.half = False
         self.binary_tresh = binary_tresh
         self.binary_sum_tresh = binary_sum_tresh
 
@@ -91,7 +98,8 @@ class FastFlowYOLOPipeline:
                                  mode='bilinear', align_corners=False)
         else:
             input_size = orig_size
-        input_t = torch.cat([img1, img2], 1).cuda()
+        input_t = torch.cat([img1, img2], 1).cuda() if self.device.type != 'cpu' else torch.cat(
+            [img1, img2], 1)
         with torch.no_grad():
             output = self.FFN(input_t).data
         flow = self.div_flow * \
@@ -233,15 +241,14 @@ class FastFlowYOLOPipeline:
                 c_img = torch.from_numpy(c_img).to(self.device)
             else:
                 c_img = c_img.to(self.device)
+
+            if self.half:
+                print("HALF")
+            else:
+                print("NOT HALF")
             c_img = c_img.half() if self.half else c_img.float()  # uint8 to fp16/32
             c_img /= 255.0  # 0 - 255 to 0.0 - 1.0
 
-            if type(p_img) is np.ndarray:
-                p_img = torch.from_numpy(p_img).to(self.device)
-            else:
-                p_img = p_img.to(self.device)
-            p_img = p_img.half() if self.half else p_img.float()  # uint8 to fp16/32
-            p_img /= 255.0
             # YOLO
             t5 = time_synchronized()
             if c_img.ndimension() == 3:
