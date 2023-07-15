@@ -181,7 +181,8 @@ class FastFlowYOLOPipeline:
                 vid_writer_flow_normal.write(c_im0)
             # FASTFLOWNET
             t3 = time_synchronized()
-            flow, flow_gray, flow_binary = self.optical_flow(p_im0, c_im0)
+            with torch.no_grad():
+                flow, flow_gray, flow_binary = self.optical_flow(p_im0, c_im0)
 
             # Using morphologyEx() method for opening operation (erode & dilate)
             if self.is_opening:
@@ -242,10 +243,6 @@ class FastFlowYOLOPipeline:
             else:
                 c_img = c_img.to(self.device)
 
-            if self.half:
-                print("HALF")
-            else:
-                print("NOT HALF")
             c_img = c_img.half() if self.half else c_img.float()  # uint8 to fp16/32
             c_img /= 255.0  # 0 - 255 to 0.0 - 1.0
 
