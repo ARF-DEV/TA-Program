@@ -128,7 +128,6 @@ class FastFlowYOLOPipeline:
                                        Path(dataset.get_file_name()).name, exist_ok=self.path_exist_ok))  # increment run
         if debug:
             save_dir.mkdir(parents=True, exist_ok=True)
-
         t1 = time_synchronized()
         frame = 1
         p_path, p_img, p_im0, p_vid_cap = next(dataset)

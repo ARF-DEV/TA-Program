@@ -11,15 +11,15 @@ import glob
 # helper.test_data("500_bst_opening/", "analysis/500_bst_opening/")
 # helper.test_data("400_bst_opening/", "analysis/400_bst_opening/")
 
-paths = glob.glob("inference/__ini_yg_paling_baru_confidence_score/*")
+paths = glob.glob("inference/pengganti/*")
 # for i, _ in enumerate(paths):
 #     paths[i] = paths[i].split('/')[-1]
-
+print(paths)
 for path in paths:
     print(path)
     print()
     helper.test_data_per_class(
-        path, "analysis/new_new_conf/")
+        path, "analysis/")
     print()
     print()
     print()
